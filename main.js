@@ -1,128 +1,16 @@
 
 
 // Mobile Phone Entity
-const mobilePhones = [
-    {
-        phoneId: 1,
-        brand: "Apple",
-        model: "iPhone 15 Pro",
-        price: 999.99,
-        storageCapacity: 256,
-        color: "Black",
-        stockQuantity: 15
-    },
-    {
-        phoneId: 2,
-        brand: "Samsung",
-        model: "Galaxy S24 Ultra",
-        price: 1199.99,
-        storageCapacity: 512,
-        color: "Titanium Gray",
-        stockQuantity: 8
-    },
-    {
-        phoneId: 3,
-        brand: "Google",
-        model: "Pixel 8 Pro",
-        price: 899.00,
-        storageCapacity: 128,
-        color: "Porcelain",
-        stockQuantity: 20
-    },
-    {
-        phoneId: 4,
-        brand: "Xiaomi",
-        model: "14 Pro",
-        price: 799.50,
-        storageCapacity: 256,
-        color: "Midnight Silver",
-        stockQuantity: 12
-    }
-];
+const mobilePhones = [];
 
 // Customer Entity
-const customers = [
-    {
-        customerId: 1,
-        firstName: "John",
-        lastName: "Smith",
-        email: "john.smith@gmail.com",
-        phoneNumber: "+1234567890",
-        address: "123 Main Street, New York",
-        registrationDate: "2026-01-15"
-    },
-    {
-        customerId: 2,
-        firstName: "Emily",
-        lastName: "Davis",
-        email: "emily.davis@yahoo.com",
-        phoneNumber: "+14155552671",
-        address: "456 Market St, San Francisco",
-        registrationDate: "2026-02-10"
-    },
-    {
-        customerId: 3,
-        firstName: "Alex",
-        lastName: "Johnson",
-        email: "alex.j@outlook.com",
-        phoneNumber: "+12065550199",
-        address: "789 Pine Avenue, Seattle",
-        registrationDate: "2026-03-01"
-    }
-];
+const customers = [];
 
 // Employee Entity
-const employees = [
-    {
-        employeeId: 1,
-        firstName: "Michael",
-        lastName: "Brown",
-        email: "michael.brown@mobilestore.com",
-        phoneNumber: "+1987654321",
-        position: "Sales Manager",
-        salary: 3500.00
-    },
-    {
-        employeeId: 2,
-        firstName: "Sarah",
-        lastName: "Connor",
-        email: "sarah.connor@mobilestore.com",
-        phoneNumber: "+1987654322",
-        position: "Store Associate",
-        salary: 2400.00
-    },
-    {
-        employeeId: 3,
-        firstName: "David",
-        lastName: "Miller",
-        email: "david.miller@mobilestore.com",
-        phoneNumber: "+1987654323",
-        position: "Technical Specialist",
-        salary: 2900.00
-    }
-];
+const employees = [];
 
 // Employee Position Entity
-const employeePositions = [
-    {
-        positionId: 1,
-        title: "Sales Manager",
-        department: "Sales",
-        description: "Manages sales operations and store revenue"
-    },
-    {
-        positionId: 2,
-        title: "Store Associate",
-        department: "Retail",
-        description: "Assists customers and maintains store presentation"
-    },
-    {
-        positionId: 3,
-        title: "Technical Specialist",
-        department: "Support",
-        description: "Handles technical repairs, setups, and diagnostics"
-    }
-];
+const employeePositions = [];
 
 // Entity Configuration Schema for Forms & Validation
 const entitySchemas = {
