@@ -283,6 +283,43 @@ const entitySchemas = {
 };
 
 let currentModalEntity = null;
+let currentlyEditingCell = null;
+
+function getFieldConfig(entityKey, fieldName) {
+    const schema = entitySchemas[entityKey];
+    if (!schema) return null;
+    return schema.fields.find(f => f.name === fieldName) || null;
+}
+
+function formatCellValue(entityKey, fieldName, value, item) {
+    switch (entityKey) {
+        case "phones":
+            if (fieldName === "brand") return `<strong>${escapeHtml(value)}</strong>`;
+            if (fieldName === "model") return `${escapeHtml(value)}`;
+            if (fieldName === "price") return `$${Number(value).toFixed(2)}`;
+            if (fieldName === "storageCapacity") return `${value} GB`;
+            if (fieldName === "color") return `<span class="color-dot" style="background-color: ${getColorHex(value)}"></span>${escapeHtml(value)}`;
+            if (fieldName === "stockQuantity") return `<span class="stock-badge">${value} in stock</span>`;
+            break;
+        case "customers":
+            if (fieldName === "firstName") return `${escapeHtml(value)}`;
+            if (fieldName === "lastName") return `<strong>${escapeHtml(value)}</strong>`;
+            if (fieldName === "email") return `<a href="mailto:${escapeHtml(value)}" style="color: var(--primary-color); text-decoration: none;">${escapeHtml(value)}</a>`;
+            if (fieldName === "phoneNumber") return `${escapeHtml(value)}`;
+            if (fieldName === "address") return `${escapeHtml(value)}`;
+            if (fieldName === "registrationDate") return `${escapeHtml(value)}`;
+            break;
+        case "employees":
+            if (fieldName === "firstName") return `${escapeHtml(value)}`;
+            if (fieldName === "lastName") return `<strong>${escapeHtml(value)}</strong>`;
+            if (fieldName === "email") return `<a href="mailto:${escapeHtml(value)}" style="color: var(--primary-color); text-decoration: none;">${escapeHtml(value)}</a>`;
+            if (fieldName === "phoneNumber") return `${escapeHtml(value)}`;
+            if (fieldName === "position") return `<span style="font-weight: 500;">${escapeHtml(value)}</span>`;
+            if (fieldName === "salary") return `$${Number(value).toFixed(2)}`;
+            break;
+    }
+    return escapeHtml(String(value));
+}
 
 //  Rendering Functions
 
@@ -294,16 +331,22 @@ function renderMobilePhones() {
     tbody.innerHTML = "";
     if (countBadge) countBadge.textContent = `${mobilePhones.length} items`;
 
+    if (mobilePhones.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state-cell">No mobile phones available</td></tr>`;
+        return;
+    }
+
     mobilePhones.forEach(phone => {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>#${phone.phoneId}</td>
-            <td><strong>${escapeHtml(phone.brand)}</strong></td>
-            <td>${escapeHtml(phone.model)}</td>
-            <td class="price-tag">$${Number(phone.price).toFixed(2)}</td>
-            <td>${phone.storageCapacity} GB</td>
-            <td><span class="color-dot" style="background-color: ${getColorHex(phone.color)}"></span>${escapeHtml(phone.color)}</td>
-            <td><span class="stock-badge">${phone.stockQuantity} in stock</span></td>
+            <td class="editable-cell" data-entity="phones" data-id="${phone.phoneId}" data-field="brand" data-type="string"><strong>${escapeHtml(phone.brand)}</strong></td>
+            <td class="editable-cell" data-entity="phones" data-id="${phone.phoneId}" data-field="model" data-type="string">${escapeHtml(phone.model)}</td>
+            <td class="editable-cell price-tag" data-entity="phones" data-id="${phone.phoneId}" data-field="price" data-type="positive-float">$${Number(phone.price).toFixed(2)}</td>
+            <td class="editable-cell" data-entity="phones" data-id="${phone.phoneId}" data-field="storageCapacity" data-type="positive-integer">${phone.storageCapacity} GB</td>
+            <td class="editable-cell" data-entity="phones" data-id="${phone.phoneId}" data-field="color" data-type="string"><span class="color-dot" style="background-color: ${getColorHex(phone.color)}"></span>${escapeHtml(phone.color)}</td>
+            <td class="editable-cell" data-entity="phones" data-id="${phone.phoneId}" data-field="stockQuantity" data-type="non-negative-integer"><span class="stock-badge">${phone.stockQuantity} in stock</span></td>
+            <td><button type="button" class="btn-delete" data-entity="phones" data-id="${phone.phoneId}" title="Delete">Delete</button></td>
         `;
         tbody.appendChild(row);
     });
@@ -317,16 +360,22 @@ function renderCustomers() {
     tbody.innerHTML = "";
     if (countBadge) countBadge.textContent = `${customers.length} registered`;
 
+    if (customers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state-cell">No customers registered</td></tr>`;
+        return;
+    }
+
     customers.forEach(customer => {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>#${customer.customerId}</td>
-            <td>${escapeHtml(customer.firstName)}</td>
-            <td><strong>${escapeHtml(customer.lastName)}</strong></td>
-            <td><a href="mailto:${escapeHtml(customer.email)}" style="color: var(--primary-color); text-decoration: none;">${escapeHtml(customer.email)}</a></td>
-            <td>${escapeHtml(customer.phoneNumber)}</td>
-            <td>${escapeHtml(customer.address)}</td>
-            <td>${escapeHtml(customer.registrationDate)}</td>
+            <td class="editable-cell" data-entity="customers" data-id="${customer.customerId}" data-field="firstName" data-type="string">${escapeHtml(customer.firstName)}</td>
+            <td class="editable-cell" data-entity="customers" data-id="${customer.customerId}" data-field="lastName" data-type="string"><strong>${escapeHtml(customer.lastName)}</strong></td>
+            <td class="editable-cell" data-entity="customers" data-id="${customer.customerId}" data-field="email" data-type="email"><a href="mailto:${escapeHtml(customer.email)}" style="color: var(--primary-color); text-decoration: none;">${escapeHtml(customer.email)}</a></td>
+            <td class="editable-cell" data-entity="customers" data-id="${customer.customerId}" data-field="phoneNumber" data-type="phone">${escapeHtml(customer.phoneNumber)}</td>
+            <td class="editable-cell" data-entity="customers" data-id="${customer.customerId}" data-field="address" data-type="string">${escapeHtml(customer.address)}</td>
+            <td class="editable-cell" data-entity="customers" data-id="${customer.customerId}" data-field="registrationDate" data-type="date">${escapeHtml(customer.registrationDate)}</td>
+            <td><button type="button" class="btn-delete" data-entity="customers" data-id="${customer.customerId}" title="Delete">Delete</button></td>
         `;
         tbody.appendChild(row);
     });
@@ -340,18 +389,189 @@ function renderEmployees() {
     tbody.innerHTML = "";
     if (countBadge) countBadge.textContent = `${employees.length} staff members`;
 
+    if (employees.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="empty-state-cell">No staff members found</td></tr>`;
+        return;
+    }
+
     employees.forEach(employee => {
         const row = document.createElement("tr");
         row.innerHTML = `
             <td>#${employee.employeeId}</td>
-            <td>${escapeHtml(employee.firstName)}</td>
-            <td><strong>${escapeHtml(employee.lastName)}</strong></td>
-            <td><a href="mailto:${escapeHtml(employee.email)}" style="color: var(--primary-color); text-decoration: none;">${escapeHtml(employee.email)}</a></td>
-            <td>${escapeHtml(employee.phoneNumber)}</td>
-            <td><span style="font-weight: 500;">${escapeHtml(employee.position)}</span></td>
-            <td class="salary-tag">$${Number(employee.salary).toFixed(2)}</td>
+            <td class="editable-cell" data-entity="employees" data-id="${employee.employeeId}" data-field="firstName" data-type="string">${escapeHtml(employee.firstName)}</td>
+            <td class="editable-cell" data-entity="employees" data-id="${employee.employeeId}" data-field="lastName" data-type="string"><strong>${escapeHtml(employee.lastName)}</strong></td>
+            <td class="editable-cell" data-entity="employees" data-id="${employee.employeeId}" data-field="email" data-type="email"><a href="mailto:${escapeHtml(employee.email)}" style="color: var(--primary-color); text-decoration: none;">${escapeHtml(employee.email)}</a></td>
+            <td class="editable-cell" data-entity="employees" data-id="${employee.employeeId}" data-field="phoneNumber" data-type="phone">${escapeHtml(employee.phoneNumber)}</td>
+            <td class="editable-cell" data-entity="employees" data-id="${employee.employeeId}" data-field="position" data-type="string"><span style="font-weight: 500;">${escapeHtml(employee.position)}</span></td>
+            <td class="editable-cell salary-tag" data-entity="employees" data-id="${employee.employeeId}" data-field="salary" data-type="positive-float">$${Number(employee.salary).toFixed(2)}</td>
+            <td><button type="button" class="btn-delete" data-entity="employees" data-id="${employee.employeeId}" title="Delete">Delete</button></td>
         `;
         tbody.appendChild(row);
+    });
+}
+
+//  Deletion Logic
+
+function deleteEntityItem(entityKey, id) {
+    const schema = entitySchemas[entityKey];
+    if (!schema) return;
+
+    const numId = Number(id);
+    const index = schema.list.findIndex(item => Number(item[schema.idField]) === numId);
+    if (index !== -1) {
+        schema.list.splice(index, 1);
+        schema.render();
+    }
+}
+
+//  Inline Cell Editing Logic
+
+function setupTableInteractions() {
+    const tables = ["phones", "customers", "employees"];
+
+    tables.forEach(entityKey => {
+        const tbody = document.getElementById(`${entityKey}-tbody`);
+        if (!tbody) return;
+
+        tbody.addEventListener("click", (event) => {
+            // Delete button click
+            const deleteBtn = event.target.closest(".btn-delete");
+            if (deleteBtn) {
+                event.stopPropagation();
+                const id = deleteBtn.getAttribute("data-id");
+                deleteEntityItem(entityKey, id);
+                return;
+            }
+
+            // Editable cell click
+            const cell = event.target.closest(".editable-cell");
+            if (cell && !cell.classList.contains("editing-cell")) {
+                startEditingCell(cell);
+            }
+        });
+    });
+}
+
+function startEditingCell(cell) {
+    // If another cell is being edited, finish it
+    if (currentlyEditingCell && currentlyEditingCell !== cell) {
+        if (typeof currentlyEditingCell.finishEdit === "function") {
+            currentlyEditingCell.finishEdit(false);
+        }
+    }
+
+    const entityKey = cell.getAttribute("data-entity");
+    const id = Number(cell.getAttribute("data-id"));
+    const fieldName = cell.getAttribute("data-field");
+    const dataType = cell.getAttribute("data-type");
+
+    const schema = entitySchemas[entityKey];
+    if (!schema) return;
+
+    const item = schema.list.find(i => Number(i[schema.idField]) === id);
+    if (!item) return;
+
+    const fieldConfig = getFieldConfig(entityKey, fieldName);
+    const currentValue = item[fieldName];
+
+    currentlyEditingCell = cell;
+    cell.classList.add("editing-cell");
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "cell-edit-wrapper";
+
+    const input = document.createElement("input");
+    input.className = "cell-edit-input";
+    input.type = fieldConfig ? fieldConfig.type : "text";
+    if (fieldConfig && fieldConfig.step) input.step = fieldConfig.step;
+    if (fieldConfig && fieldConfig.min !== undefined) input.min = fieldConfig.min;
+    input.value = currentValue !== undefined && currentValue !== null ? String(currentValue) : "";
+
+    const tooltip = document.createElement("div");
+    tooltip.className = "cell-edit-error-tooltip";
+    tooltip.style.display = "none";
+
+    wrapper.appendChild(input);
+    wrapper.appendChild(tooltip);
+
+    cell.innerHTML = "";
+    cell.appendChild(wrapper);
+
+    input.focus();
+    if (typeof input.select === "function" && input.type !== "date") {
+        input.select();
+    }
+
+    let isFinished = false;
+
+    function finishEdit(isEnterKey) {
+        if (isFinished) return;
+
+        const rawVal = input.value;
+        const error = validateValue(rawVal, dataType);
+
+        if (error) {
+            if (isEnterKey) {
+                input.classList.add("input-error");
+                tooltip.textContent = error;
+                tooltip.style.display = "block";
+                input.focus();
+                return;
+            } else {
+                // If clicked outside and value is invalid, restore original value
+                isFinished = true;
+                cell.classList.remove("editing-cell");
+                cell.innerHTML = formatCellValue(entityKey, fieldName, item[fieldName], item);
+                if (currentlyEditingCell === cell) currentlyEditingCell = null;
+                return;
+            }
+        }
+
+        // Value is valid, save to data model
+        isFinished = true;
+        const trimmed = rawVal.trim();
+        let parsedValue;
+        if (dataType === "positive-float") {
+            parsedValue = parseFloat(trimmed);
+        } else if (dataType === "positive-integer" || dataType === "non-negative-integer") {
+            parsedValue = parseInt(trimmed, 10);
+        } else {
+            parsedValue = trimmed;
+        }
+
+        item[fieldName] = parsedValue;
+        cell.classList.remove("editing-cell");
+        cell.innerHTML = formatCellValue(entityKey, fieldName, parsedValue, item);
+
+        if (currentlyEditingCell === cell) currentlyEditingCell = null;
+    }
+
+    cell.finishEdit = finishEdit;
+
+    input.addEventListener("input", () => {
+        input.classList.remove("input-error");
+        tooltip.style.display = "none";
+    });
+
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            finishEdit(true);
+        } else if (e.key === "Escape") {
+            e.preventDefault();
+            isFinished = true;
+            cell.classList.remove("editing-cell");
+            cell.innerHTML = formatCellValue(entityKey, fieldName, item[fieldName], item);
+            if (currentlyEditingCell === cell) currentlyEditingCell = null;
+        }
+    });
+
+    input.addEventListener("blur", () => {
+        setTimeout(() => {
+            if (!isFinished && currentlyEditingCell === cell) {
+                finishEdit(false);
+            }
+        }, 120);
     });
 }
 
@@ -511,9 +731,8 @@ function closeModal() {
 
 // Field Validation Logic
 
-function validateField(input, dataType) {
-    const rawValue = input.value;
-    const value = rawValue.trim();
+function validateValue(rawValue, dataType) {
+    const value = (rawValue !== undefined && rawValue !== null) ? String(rawValue).trim() : "";
 
     // 1. Emptiness check for all fields
     if (value === "") {
@@ -581,6 +800,10 @@ function validateField(input, dataType) {
     }
 
     return null; // Valid
+}
+
+function validateField(input, dataType) {
+    return validateValue(input.value, dataType);
 }
 
 function handleFormSubmit(event) {
@@ -679,4 +902,5 @@ document.addEventListener("DOMContentLoaded", () => {
     renderEmployees();
     setupTabs();
     setupModal();
+    setupTableInteractions();
 });

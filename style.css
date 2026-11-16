@@ -418,3 +418,106 @@ tbody tr:hover {
     border: 1px solid #cbd5e1;
     vertical-align: middle;
 }
+
+/* Delete Action Button */
+.btn-delete {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-delete:hover {
+    background-color: #ef4444;
+    color: #ffffff;
+    border-color: #ef4444;
+}
+
+.btn-delete:active {
+    transform: translateY(1px);
+}
+
+/* Editable Cells & Inline Edit */
+.editable-cell {
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.editable-cell:hover:not(.editing-cell) {
+    background-color: #f1f5f9;
+    box-shadow: inset 0 0 0 1px #cbd5e1;
+}
+
+.editable-cell.editing-cell {
+    padding: 0.35rem 0.5rem;
+    background-color: #ffffff;
+}
+
+.cell-edit-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.cell-edit-input {
+    width: 100%;
+    padding: 0.4rem 0.55rem;
+    font-size: 0.875rem;
+    font-family: inherit;
+    border: 2px solid var(--primary-color);
+    border-radius: 6px;
+    outline: none;
+    background-color: #ffffff;
+    color: var(--text-main);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.cell-edit-input.input-error {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.cell-edit-error-tooltip {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 50;
+    background-color: #ef4444;
+    color: #ffffff;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    white-space: nowrap;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    animation: fadeIn 0.15s ease-in-out;
+}
+
+.cell-edit-error-tooltip::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 10px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #ef4444 transparent;
+}
+
+.empty-state-cell {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2.5rem 1rem !important;
+    font-size: 0.9rem;
+    font-style: italic;
+}
