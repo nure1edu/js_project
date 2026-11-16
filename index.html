@@ -34,7 +34,10 @@
         <section id="phones-tab" class="tab-content active">
             <div class="content-header">
                 <h2>Mobile Phone Inventory</h2>
-                <span class="badge-count" id="phones-count">0 items</span>
+                <div class="header-actions">
+                    <span class="badge-count" id="phones-count">0 items</span>
+                    <button type="button" class="btn-add" data-entity="phones">+ Add new</button>
+                </div>
             </div>
             <div class="table-responsive">
                 <table id="phones-table">
@@ -58,7 +61,10 @@
         <section id="customers-tab" class="tab-content">
             <div class="content-header">
                 <h2>Customer Directory</h2>
-                <span class="badge-count" id="customers-count">0 items</span>
+                <div class="header-actions">
+                    <span class="badge-count" id="customers-count">0 items</span>
+                    <button type="button" class="btn-add" data-entity="customers">+ Add new</button>
+                </div>
             </div>
             <div class="table-responsive">
                 <table id="customers-table">
@@ -82,7 +88,10 @@
         <section id="employees-tab" class="tab-content">
             <div class="content-header">
                 <h2>Employee Staff</h2>
-                <span class="badge-count" id="employees-count">0 items</span>
+                <div class="header-actions">
+                    <span class="badge-count" id="employees-count">0 items</span>
+                    <button type="button" class="btn-add" data-entity="employees">+ Add new</button>
+                </div>
             </div>
             <div class="table-responsive">
                 <table id="employees-table">
@@ -101,6 +110,25 @@
                 </table>
             </div>
         </section>
+    </div>
+
+    <!-- Modal Popup for Adding Entities -->
+    <div id="modal-overlay" class="modal-overlay" aria-hidden="true">
+        <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <div class="modal-header">
+                <h3 id="modal-title">Add New Item</h3>
+                <button type="button" class="modal-close-btn" id="modal-close-btn" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="entity-form" novalidate>
+                <div id="modal-form-fields" class="form-grid">
+                    <!-- Dynamic form inputs -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="modal-cancel-btn">Cancel</button>
+                    <button type="submit" class="btn-primary" id="modal-submit-btn">Save</button>
+                </div>
+            </form>
+        </div>
     </div>
 
 
