@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Store - Management Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="main.js"></script>
+</head>
+<body>
+
+
+
+    <div class="container">
+        <header>
+            <h1>Mobile Phone Web Store</h1>
+            <p>Store Entities and Information Management System</p>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="tabs-nav" aria-label="Entity Tabs">
+            <button class="tab-btn active" data-tab="phones-tab">
+                📱 Mobile Phones
+            </button>
+            <button class="tab-btn" data-tab="customers-tab">
+                👥 Customers
+            </button>
+            <button class="tab-btn" data-tab="employees-tab">
+                💼 Employees
+            </button>
+        </nav>
+
+        <!-- Mobile Phones Table -->
+        <section id="phones-tab" class="tab-content active">
+            <div class="content-header">
+                <h2>Mobile Phone Inventory</h2>
+                <span class="badge-count" id="phones-count">0 items</span>
+            </div>
+            <div class="table-responsive">
+                <table id="phones-table">
+                    <thead>
+                        <tr>
+                            <th>Phone ID</th>
+                            <th>Brand</th>
+                            <th>Model</th>
+                            <th>Price</th>
+                            <th>Storage</th>
+                            <th>Color</th>
+                            <th>Stock Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody id="phones-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Customers Table -->
+        <section id="customers-tab" class="tab-content">
+            <div class="content-header">
+                <h2>Customer Directory</h2>
+                <span class="badge-count" id="customers-count">0 items</span>
+            </div>
+            <div class="table-responsive">
+                <table id="customers-table">
+                    <thead>
+                        <tr>
+                            <th>Customer ID</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Email</th>
+                            <th>Phone Number</th>
+                            <th>Address</th>
+                            <th>Registration Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customers-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Employees Table -->
+        <section id="employees-tab" class="tab-content">
+            <div class="content-header">
+                <h2>Employee Staff</h2>
+                <span class="badge-count" id="employees-count">0 items</span>
+            </div>
+            <div class="table-responsive">
+                <table id="employees-table">
+                    <thead>
+                        <tr>
+                            <th>Employee ID</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Email</th>
+                            <th>Phone Number</th>
+                            <th>Position</th>
+                            <th>Salary</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employees-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+
+</body>
+</html>
