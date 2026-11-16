@@ -281,6 +281,11 @@ header p {
     outline: none;
 }
 
+select.form-control,
+select.cell-edit-input {
+    cursor: pointer;
+}
+
 .form-control:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);

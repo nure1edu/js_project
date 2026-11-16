@@ -102,6 +102,28 @@ const employees = [
     }
 ];
 
+// Employee Position Entity
+const employeePositions = [
+    {
+        positionId: 1,
+        title: "Sales Manager",
+        department: "Sales",
+        description: "Manages sales operations and store revenue"
+    },
+    {
+        positionId: 2,
+        title: "Store Associate",
+        department: "Retail",
+        description: "Assists customers and maintains store presentation"
+    },
+    {
+        positionId: 3,
+        title: "Technical Specialist",
+        department: "Support",
+        description: "Handles technical repairs, setups, and diagnostics"
+    }
+];
+
 // Entity Configuration Schema for Forms & Validation
 const entitySchemas = {
     phones: {
@@ -263,9 +285,9 @@ const entitySchemas = {
             {
                 name: "position",
                 label: "Position",
-                type: "text",
+                type: "select",
                 dataType: "string",
-                placeholder: "e.g. Sales Manager",
+                placeholder: "Select a position",
                 fullWidth: false
             },
             {
@@ -277,6 +299,38 @@ const entitySchemas = {
                 step: "0.01",
                 min: "0.01",
                 fullWidth: false
+            }
+        ]
+    },
+    positions: {
+        title: "Add New Employee Position",
+        idField: "positionId",
+        list: employeePositions,
+        render: renderEmployeePositions,
+        fields: [
+            {
+                name: "title",
+                label: "Position Title",
+                type: "text",
+                dataType: "string",
+                placeholder: "e.g. Sales Manager",
+                fullWidth: false
+            },
+            {
+                name: "department",
+                label: "Department",
+                type: "text",
+                dataType: "string",
+                placeholder: "e.g. Sales",
+                fullWidth: false
+            },
+            {
+                name: "description",
+                label: "Description",
+                type: "text",
+                dataType: "string",
+                placeholder: "e.g. Manages store sales and staff",
+                fullWidth: true
             }
         ]
     }
@@ -316,6 +370,11 @@ function formatCellValue(entityKey, fieldName, value, item) {
             if (fieldName === "phoneNumber") return `${escapeHtml(value)}`;
             if (fieldName === "position") return `<span style="font-weight: 500;">${escapeHtml(value)}</span>`;
             if (fieldName === "salary") return `$${Number(value).toFixed(2)}`;
+            break;
+        case "positions":
+            if (fieldName === "title") return `<strong>${escapeHtml(value)}</strong>`;
+            if (fieldName === "department") return `${escapeHtml(value)}`;
+            if (fieldName === "description") return `${escapeHtml(value)}`;
             break;
     }
     return escapeHtml(String(value));
@@ -410,6 +469,32 @@ function renderEmployees() {
     });
 }
 
+function renderEmployeePositions() {
+    const tbody = document.getElementById("positions-tbody");
+    const countBadge = document.getElementById("positions-count");
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+    if (countBadge) countBadge.textContent = `${employeePositions.length} positions`;
+
+    if (employeePositions.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-state-cell">No employee positions available</td></tr>`;
+        return;
+    }
+
+    employeePositions.forEach(pos => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>#${pos.positionId}</td>
+            <td class="editable-cell" data-entity="positions" data-id="${pos.positionId}" data-field="title" data-type="string"><strong>${escapeHtml(pos.title)}</strong></td>
+            <td class="editable-cell" data-entity="positions" data-id="${pos.positionId}" data-field="department" data-type="string">${escapeHtml(pos.department)}</td>
+            <td class="editable-cell" data-entity="positions" data-id="${pos.positionId}" data-field="description" data-type="string">${escapeHtml(pos.description)}</td>
+            <td><button type="button" class="btn-delete" data-entity="positions" data-id="${pos.positionId}" title="Delete">Delete</button></td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
 //  Deletion Logic
 
 function deleteEntityItem(entityKey, id) {
@@ -418,16 +503,27 @@ function deleteEntityItem(entityKey, id) {
 
     const numId = Number(id);
     const index = schema.list.findIndex(item => Number(item[schema.idField]) === numId);
-    if (index !== -1) {
-        schema.list.splice(index, 1);
-        schema.render();
+    if (index === -1) return;
+
+    if (entityKey === "positions") {
+        const positionItem = schema.list[index];
+        const positionTitle = positionItem.title || positionItem.positionName || positionItem.name || positionItem.position;
+        const matchingEmployees = employees.filter(emp => emp.position === positionTitle);
+        if (matchingEmployees.length > 0) {
+            alert(`This position cannot be deleted because it is currently assigned to ${matchingEmployees.length} employee(s) in the Employees table. Please reassign the employees before deleting this position.`);
+            return;
+        }
     }
+
+    schema.list.splice(index, 1);
+    schema.render();
+    saveToStorage(entityKey);
 }
 
 //  Inline Cell Editing Logic
 
 function setupTableInteractions() {
-    const tables = ["phones", "customers", "employees"];
+    const tables = ["phones", "customers", "employees", "positions"];
 
     tables.forEach(entityKey => {
         const tbody = document.getElementById(`${entityKey}-tbody`);
@@ -480,12 +576,46 @@ function startEditingCell(cell) {
     const wrapper = document.createElement("div");
     wrapper.className = "cell-edit-wrapper";
 
-    const input = document.createElement("input");
-    input.className = "cell-edit-input";
-    input.type = fieldConfig ? fieldConfig.type : "text";
-    if (fieldConfig && fieldConfig.step) input.step = fieldConfig.step;
-    if (fieldConfig && fieldConfig.min !== undefined) input.min = fieldConfig.min;
-    input.value = currentValue !== undefined && currentValue !== null ? String(currentValue) : "";
+    const isPositionSelect = (entityKey === "employees" && fieldName === "position") || (fieldConfig && fieldConfig.type === "select");
+
+    let input;
+    if (isPositionSelect) {
+        input = document.createElement("select");
+        input.className = "cell-edit-input cell-edit-select";
+
+        const availablePositions = employeePositions.map(p => p.title || p.positionName || p.name || p.position);
+        if (availablePositions.length === 0) {
+            const opt = document.createElement("option");
+            opt.value = "";
+            opt.textContent = "No positions available";
+            input.appendChild(opt);
+        } else {
+            availablePositions.forEach(pos => {
+                const opt = document.createElement("option");
+                opt.value = pos;
+                opt.textContent = pos;
+                if (pos === currentValue) {
+                    opt.selected = true;
+                }
+                input.appendChild(opt);
+            });
+
+            if (currentValue && !availablePositions.includes(currentValue)) {
+                const opt = document.createElement("option");
+                opt.value = currentValue;
+                opt.textContent = `${currentValue} (Current)`;
+                opt.selected = true;
+                input.insertBefore(opt, input.firstChild);
+            }
+        }
+    } else {
+        input = document.createElement("input");
+        input.className = "cell-edit-input";
+        input.type = fieldConfig ? fieldConfig.type : "text";
+        if (fieldConfig && fieldConfig.step) input.step = fieldConfig.step;
+        if (fieldConfig && fieldConfig.min !== undefined) input.min = fieldConfig.min;
+        input.value = currentValue !== undefined && currentValue !== null ? String(currentValue) : "";
+    }
 
     const tooltip = document.createElement("div");
     tooltip.className = "cell-edit-error-tooltip";
@@ -498,7 +628,7 @@ function startEditingCell(cell) {
     cell.appendChild(wrapper);
 
     input.focus();
-    if (typeof input.select === "function" && input.type !== "date") {
+    if (!isPositionSelect && typeof input.select === "function" && input.type !== "date") {
         input.select();
     }
 
@@ -508,7 +638,14 @@ function startEditingCell(cell) {
         if (isFinished) return;
 
         const rawVal = input.value;
-        const error = validateValue(rawVal, dataType);
+        let error = validateValue(rawVal, dataType);
+
+        if (!error && isPositionSelect && rawVal) {
+            const validPositions = employeePositions.map(p => p.title || p.positionName || p.name || p.position);
+            if (validPositions.length > 0 && !validPositions.includes(rawVal)) {
+                error = "Selected position does not exist in Employee Positions.";
+            }
+        }
 
         if (error) {
             if (isEnterKey) {
@@ -542,6 +679,7 @@ function startEditingCell(cell) {
         item[fieldName] = parsedValue;
         cell.classList.remove("editing-cell");
         cell.innerHTML = formatCellValue(entityKey, fieldName, parsedValue, item);
+        saveToStorage(entityKey);
 
         if (currentlyEditingCell === cell) currentlyEditingCell = null;
     }
@@ -552,6 +690,12 @@ function startEditingCell(cell) {
         input.classList.remove("input-error");
         tooltip.style.display = "none";
     });
+
+    if (isPositionSelect) {
+        input.addEventListener("change", () => {
+            finishEdit(false);
+        });
+    }
 
     input.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
@@ -665,20 +809,44 @@ function openModal(entityKey) {
             label.htmlFor = `field-${field.name}`;
             label.innerHTML = `${escapeHtml(field.label)} <span class="required-star">*</span>`;
 
-            const input = document.createElement("input");
-            input.id = `field-${field.name}`;
-            input.name = field.name;
-            input.type = field.type;
-            input.className = "form-control";
-            input.placeholder = field.placeholder || "";
-            if (field.step) input.step = field.step;
-            if (field.min !== undefined) input.min = field.min;
-            input.setAttribute("data-type", field.dataType);
+            let input;
+            const isPositionSelect = (currentModalEntity === "employees" && field.name === "position") || field.type === "select";
 
-            // Default registration date to today if applicable
-            if (field.type === "date" && field.name === "registrationDate") {
-                const today = new Date().toISOString().split("T")[0];
-                input.value = today;
+            if (isPositionSelect) {
+                input = document.createElement("select");
+                input.id = `field-${field.name}`;
+                input.name = field.name;
+                input.className = "form-control";
+                input.setAttribute("data-type", field.dataType);
+
+                const defaultOption = document.createElement("option");
+                defaultOption.value = "";
+                defaultOption.textContent = field.placeholder || "Select a position...";
+                input.appendChild(defaultOption);
+
+                employeePositions.forEach(pos => {
+                    const title = pos.title || pos.positionName || pos.name || pos.position;
+                    const opt = document.createElement("option");
+                    opt.value = title;
+                    opt.textContent = title;
+                    input.appendChild(opt);
+                });
+            } else {
+                input = document.createElement("input");
+                input.id = `field-${field.name}`;
+                input.name = field.name;
+                input.type = field.type;
+                input.className = "form-control";
+                input.placeholder = field.placeholder || "";
+                if (field.step) input.step = field.step;
+                if (field.min !== undefined) input.min = field.min;
+                input.setAttribute("data-type", field.dataType);
+
+                // Default registration date to today if applicable
+                if (field.type === "date" && field.name === "registrationDate") {
+                    const today = new Date().toISOString().split("T")[0];
+                    input.value = today;
+                }
             }
 
             const errorSpan = document.createElement("div");
@@ -686,6 +854,10 @@ function openModal(entityKey) {
             errorSpan.id = `error-${field.name}`;
 
             input.addEventListener("input", () => {
+                input.classList.remove("input-error");
+                errorSpan.textContent = "";
+            });
+            input.addEventListener("change", () => {
                 input.classList.remove("input-error");
                 errorSpan.textContent = "";
             });
@@ -702,7 +874,7 @@ function openModal(entityKey) {
         modalOverlay.setAttribute("aria-hidden", "false");
 
         // Focus first field
-        const firstInput = formFieldsContainer ? formFieldsContainer.querySelector("input") : null;
+        const firstInput = formFieldsContainer ? formFieldsContainer.querySelector("input, select") : null;
         if (firstInput) {
             setTimeout(() => firstInput.focus(), 100);
         }
@@ -803,7 +975,16 @@ function validateValue(rawValue, dataType) {
 }
 
 function validateField(input, dataType) {
-    return validateValue(input.value, dataType);
+    const error = validateValue(input.value, dataType);
+    if (error) return error;
+
+    if (input.name === "position" && currentModalEntity === "employees") {
+        const validPositions = employeePositions.map(p => p.title || p.positionName || p.name || p.position);
+        if (validPositions.length > 0 && !validPositions.includes(input.value.trim())) {
+            return "Please select a valid position from the list.";
+        }
+    }
+    return null;
 }
 
 function handleFormSubmit(event) {
@@ -864,9 +1045,125 @@ function handleFormSubmit(event) {
     // Add new item and re-render table
     currentList.push(newItem);
     schema.render();
+    saveToStorage(currentModalEntity);
 
     // Close popup modal
     closeModal();
+}
+
+// LocalStorage Persistence & Cross-Tab Sync
+
+const STORAGE_KEYS = {
+    phones: "mobilePhones",
+    customers: "customers",
+    employees: "employees",
+    positions: "employeePositions"
+};
+
+function saveToStorage(entityKey) {
+    if (typeof localStorage === "undefined") return;
+    try {
+        if (entityKey && entitySchemas[entityKey]) {
+            const sKey = STORAGE_KEYS[entityKey] || entityKey;
+            localStorage.setItem(sKey, JSON.stringify(entitySchemas[entityKey].list));
+        } else {
+            Object.keys(entitySchemas).forEach(key => {
+                const sKey = STORAGE_KEYS[key] || key;
+                localStorage.setItem(sKey, JSON.stringify(entitySchemas[key].list));
+            });
+        }
+    } catch (e) {
+        console.error("Failed to save to localStorage:", e);
+    }
+}
+
+function loadFromStorage() {
+    if (typeof localStorage === "undefined") return;
+
+    const keyMap = {
+        phones: ["mobilePhones", "phones", "phones_data"],
+        customers: ["customers", "customers_data"],
+        employees: ["employees", "employees_data"],
+        positions: ["employeePositions", "positions", "positions_data"]
+    };
+
+    Object.keys(entitySchemas).forEach(entityKey => {
+        try {
+            const possibleKeys = keyMap[entityKey] || [entityKey];
+            for (const sKey of possibleKeys) {
+                const raw = localStorage.getItem(sKey);
+                if (raw !== null) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        entitySchemas[entityKey].list.splice(0, entitySchemas[entityKey].list.length, ...parsed);
+                        break;
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Error loading data from localStorage for " + entityKey, e);
+        }
+    });
+}
+
+function renderAllTables() {
+    renderMobilePhones();
+    renderCustomers();
+    renderEmployees();
+    renderEmployeePositions();
+}
+
+function handleStorageChange(event) {
+    if (!event) return;
+
+    // If storage was cleared
+    if (!event.key) {
+        loadFromStorage();
+        if (currentlyEditingCell) {
+            currentlyEditingCell = null;
+        }
+        renderAllTables();
+        return;
+    }
+
+    let modified = false;
+    const keyMap = {
+        phones: ["mobilePhones", "phones", "phones_data"],
+        customers: ["customers", "customers_data"],
+        employees: ["employees", "employees_data"],
+        positions: ["employeePositions", "positions", "positions_data"]
+    };
+
+    Object.entries(keyMap).forEach(([entityKey, possibleKeys]) => {
+        if (possibleKeys.includes(event.key)) {
+            try {
+                const raw = event.newValue !== null && event.newValue !== undefined
+                    ? event.newValue
+                    : localStorage.getItem(event.key);
+                if (raw !== null) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        entitySchemas[entityKey].list.splice(0, entitySchemas[entityKey].list.length, ...parsed);
+                        modified = true;
+                    }
+                }
+            } catch (e) {
+                console.error("Error processing storage change for " + entityKey, e);
+            }
+        }
+    });
+
+    if (modified) {
+        if (currentlyEditingCell) {
+            currentlyEditingCell = null;
+        }
+        renderAllTables();
+    }
+}
+
+function setupStorageSync() {
+    if (typeof window === "undefined" || !window.addEventListener) return;
+    window.addEventListener("storage", handleStorageChange);
 }
 
 // Utility
@@ -897,10 +1194,10 @@ function getColorHex(colorName) {
 //  Initialize on DOM Content Loaded
 
 document.addEventListener("DOMContentLoaded", () => {
-    renderMobilePhones();
-    renderCustomers();
-    renderEmployees();
+    loadFromStorage();
+    renderAllTables();
     setupTabs();
     setupModal();
     setupTableInteractions();
+    setupStorageSync();
 });

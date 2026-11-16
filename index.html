@@ -28,6 +28,9 @@
             <button class="tab-btn" data-tab="employees-tab">
                 💼 Employees
             </button>
+            <button class="tab-btn" data-tab="positions-tab">
+                📋 Employee Positions
+            </button>
         </nav>
 
         <!-- Mobile Phones Table -->
@@ -110,6 +113,31 @@
                         </tr>
                     </thead>
                     <tbody id="employees-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Employee Positions Table -->
+        <section id="positions-tab" class="tab-content">
+            <div class="content-header">
+                <h2>Employee Positions</h2>
+                <div class="header-actions">
+                    <span class="badge-count" id="positions-count">0 items</span>
+                    <button type="button" class="btn-add" data-entity="positions">+ Add new</button>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="positions-table">
+                    <thead>
+                        <tr>
+                            <th>Position ID</th>
+                            <th>Position Title</th>
+                            <th>Department</th>
+                            <th>Description</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="positions-tbody"></tbody>
                 </table>
             </div>
         </section>
